@@ -122,7 +122,9 @@ def getAppleLocations():
         elif len(cnt) > 5:
             Good_apple_polys.append(cnt)
     
-    ''' Centroid and Depth Computing '''
+    ''' Centroid and Depth Computing 
+        Computes the centroid by finding the moments of each poly, grabbing the correct one to find the cX and cY
+    '''
     Bad_apple_centroid = []
     Bad_apple_depth =[]
     # Centroid for bad apples
