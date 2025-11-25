@@ -17,7 +17,10 @@ In this project, we will demonstrate a robot that will find and sort two differe
 ### Overall Flow Chart
 ```mermaid
 graph TD
-  A[CoppeliaSim] --Camera Data---> B[Computer Vision]
+  A[CAD] --Robot and Tree Models--> B[CoppeliaSim]
+  B[CoppeliaSim] --Camera Data---> C[Computer Vision]
+  C[Computer Vision] --Apple Locations--> D[Kinematics and Path Planing for Mobile Robot]
+  C[Computer Vision] --Apple Locations and Types--> E[Inverse Kinematics for Manipulator]
 ```
 ### CAD
 
