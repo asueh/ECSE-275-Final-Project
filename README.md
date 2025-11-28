@@ -2,13 +2,13 @@
 
 ## Team Members and Roles
 #### Eva-Jessy Guech
-Implemented kinematics for control of the mobile robot to get to the apples.
+Implemented inverse kinematics for control of the manipulator arm to pick the apples.
 #### Amara Suehrstedt
 Implemented computer vision for finding and sorting the different kind of apples. Worked on project description.
 #### Nathan Law
 Created the CAD files for both the robot and the tree, and implemented both into CoppeliaSim.
 #### Henry Liu
-Implemented invserse kinematics for the manipulator arm to pick the apples.
+Implemented path planning for the mobile robot to go to the apples.
 
 ## Introduction
 In this project, we will demonstrate a robot that will find and sort two different kinds of apples (good or bad), move to the apples, put the good apples into the basket on the robot, and the bad apples elsewhere. The ECSE 275 concepts we are using are path planning, inverse kinematics, computer vision, and visual based control of steering.
