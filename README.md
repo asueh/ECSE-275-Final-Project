@@ -26,7 +26,7 @@ _Yiheng Liu_
 - implementation of a certain component of the project? Did they analyze or run experiments on the
 - implementation to gather results or data? Did they help plot the data and write up the project description?
 
-_Eva-Jessy Guech _
+_Eva-Jessy Guech_
 - Describe the roles and responsibilities of each member of your team. For example: Did they help with the
 - implementation of a certain component of the project? Did they analyze or run experiments on the
 - implementation to gather results or data? Did they help plot the data and write up the project description?
