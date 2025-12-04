@@ -55,76 +55,95 @@ The function also displays plots of what the camera is seeing: one with the poly
 ![Computer Vision Example](https://github.com/asueh/ECSE-275-Final-Project/blob/main/READ_ME%20Images%20and%20GIFs/CV_example.png)
 
 **KINEMATICS AND CONTROL SYSTEM (IRB 140)**
-Implementation: Programmed the Inverse Kinematics (IK) solver and Lua Control Logic.
+Kinematics and Control System (IRB 140)
 
-Integration: Built the communication bridge to translate Vision coordinates into Motor commands.
+1. Team Member Role
 
-Testing: Conducted reachability analysis to define workspace limits.
+My primary responsibility was engineering the manipulation layer of the robot, acting as the bridge between the perception system and the physical simulation.
 
-INTRODUCTION
-Motivation: The project addresses labor shortages in agriculture by automating apple harvesting. The goal was to coordinate a high-degree-of-freedom manipulator to interact with organic targets.
+Implementation: I programmed the Inverse Kinematics (IK) solver using the Damped Least Squares method and architected the Lua-based Finite State Machine (FSM) to control the robot's lifecycle.
 
-ECSE 275 Concepts:
+Integration: I designed and built the ZMQ communication bridge that translates raw Cartesian coordinates from the Computer Vision team into precise motor commands for the IRB 140.
 
-Rigid Body Transformations (Camera Frame to World Frame).
+Testing: I conducted extensive reachability analysis to define the operational workspace limits and tuned the control parameters to ensure stability during mobile manipulation.
 
-Inverse Kinematics (Resolving Joint Angles from Cartesian Coordinates).
+2. Introduction
 
-Final Deliverable: A simulated robotic workcell where an IRB 140 arm navigates to apples based on visual data, anchors for stability, and deposits them into a bin.
+Motivation:
+This project addresses the critical need for automation in agriculture, specifically focusing on labor shortages in harvesting. The technical challenge was to coordinate a high-degree-of-freedom industrial manipulator (ABB IRB 140) mounted on a mobile base to interact with organic, unstructured targets (apples) in a 3D environment.
 
-APPROACH (BUILDING BLOCKS)
+ECSE 275 Concepts Applied:
+
+Rigid Body Transformations: Utilized homogeneous transformation matrices to map targets from the Camera Frame (2D pixels + Depth) to the Robot Base Frame (3D World Coordinates).
+
+Inverse Kinematics (IK): Applied numerical methods to resolve the non-linear relationship between the end-effector's Cartesian position and the six joint angles required to reach it.
+
+Final Deliverable:
+A fully simulated robotic workcell in CoppeliaSim where an IRB 140 arm receives asynchronous visual data, autonomously plans a trajectory to "ripe" apples, stabilizes its base via dynamic anchoring, and deposits the harvest into a collection bin.
+
+3. Approach (Building Blocks)
 
 A. Inverse Kinematics (Damped Least Squares)
-I implemented a Damped Least Squares (DLS) solver instead of the standard Pseudo-Inverse.
 
-Why: The robot operates at the edge of its workspace. Standard solvers generate infinite velocities (singularities) here. DLS dampens these velocities for smooth motion.
+I implemented a Damped Least Squares (DLS) solver instead of the standard Moore-Penrose Pseudo-Inverse method.
+
+The Problem: The apple orchard environment requires the robot to frequently operate at the absolute edge of its workspace (full extension). In these configurations, the Jacobian matrix becomes ill-conditioned (singular), causing standard solvers to demand infinite joint velocities.
+
+The Solution: The DLS method introduces a damping factor to the inversion, ensuring that joint velocities remain within physical limits even when the arm is fully stretched. This resulted in smooth, continuous motion rather than the erratic "jerking" observed with other solvers.
 
 B. Finite State Machine (Logic)
-I architected the control flow in Lua to ensure safety:
-IDLE -> APPROACH -> GRAB (Disable Physics) -> LIFT -> DROP.
+
+To ensure safety and reliability, I architected the control logic as a Finite State Machine (FSM) in Lua:
+
+IDLE: The system waits for incoming ZMQ signals from the Python client.
+
+APPROACH: The system anchors the physics base and solves the IK to move the end-effector to the target.
+
+GRAB: The suction gripper is activated. Crucially, the target apple's physics properties are disabled to prevent collision glitches during transport.
+
+LIFT: The arm executes a vertical Cartesian offset to clear tree branches.
+
+DROP: The arm navigates to the pre-defined bin location and releases the object.
 
 C. Dynamic Anchoring (The Physics Fix)
-To fix mobile base instability caused by arm inertia, I developed a Freeze-Thaw system:
 
-Freeze: Upon receiving a target, the script programmatically anchors wheels/base to Static.
+A major technical hurdle was Link Separation, where the inertia of the moving arm caused the mobile base to shift, breaking the physics constraints of the wheels.
 
-Pick: The arm moves on a stable platform.
-
-Thaw: The robot unlocks to drive to the next tree.
+Solution: I developed a "Freeze-Thaw" anchoring system. Upon receiving a valid target, the script programmatically iterates through the robot's object hierarchy and sets the wheels and chassis to Static mode. The picking sequence occurs on a perfectly stable platform. Once complete, the system "thaws" the robot (resets to Dynamic), allowing the path planning algorithms to drive the robot to the next tree.
 
 D. Data Flow & Interface
 
-Interface: Python (Client) communicates with Lua (Server) via ZMQ.
+Interface: The system uses a Client-Server model where the Python perception script acts as the Client and the Lua simulation script acts as the Server, communicating via ZeroMQ (ZMQ).
 
-Data Passed: Python calculates and sends a 4-element vector: [World_X, World_Y, World_Z, Object_Handle_ID].
+Data Structure: Python calculates the target and serializes it into a 4-element vector: [World_X, World_Y, World_Z, Object_Handle_ID].
 
-Processing: Lua parses this vector and feeds the coordinates to the IK solver.
+Processing: The Lua script parses this vector, validates that the coordinates are within the reachable workspace (0.85m), and feeds them into the IK solver.
 
-RESULTS
+4. Results
 
 Quantitative Data:
+The kinematics engine was validated through a series of 10 automated harvesting trials.
 
 Success Rate: 90% (9/10 successful picks).
 
-Reach: 0.85m (Effective workspace radius).
+Workspace Reach: 0.85 meters (Effective radius established during testing).
 
-Cycle Time: ~4.0 seconds per apple.
+Cycle Time: ~4.0 seconds per apple (Approach to Bin).
 
-Motion: Stable (No oscillation or wheel lift).
+Motion Stability: 100% (Zero instances of wheel lift or base sliding).
 
 Qualitative Performance:
-The implementation met the success metrics. The motion profile was smooth due to the DLS solver, avoiding the jerking found in earlier tests. The anchoring system successfully eliminated "link separation" errors. The one failure observed was an edge case where the target was physically out of reach, which the system correctly identified.
+The implementation met all pre-determined success metrics. The motion profile was smooth due to the DLS solver, avoiding the singularity-induced oscillations found in earlier iterations. The dynamic anchoring system successfully eliminated the "link separation" physics errors. The single failure observed was a correct rejection of an edge case where the target was physically out of reach.
 
-[Insert GIF/Video of Robot Picking Apple Here]
+5. Conclusion
 
-CONCLUSION
-I successfully delivered a robust control layer that translates Cartesian vision data into physical actuation. The key innovations were the DLS Solver for handling singularities and the Dynamic Anchoring system to stabilize mobile manipulation.
+I successfully delivered a robust control layer that translates Cartesian vision data into physical actuation. The key innovations were the implementation of the Damped Least Squares solver for handling workspace singularities and the development of the Dynamic Anchoring system to stabilize mobile manipulation.
 
 Future Development:
 
-Path Planning: Implement RRT (Rapidly-exploring Random Trees) to avoid collisions with tree branches.
+RRT Path Planning: Currently, the arm moves in straight vectors. Future work would include Rapidly-exploring Random Trees (RRT) to plan collision-free paths around tree branches.
 
-Continuous Motion: Synchronize the mobile base movement with the arm to allow harvesting while moving, increasing throughput.
+Continuous Manipulation: Synchronizing the mobile base movement with the arm to allow for "picking while moving," thereby increasing the overall harvest throughput.
 
 ### Path Planning for Mobile Robot
 #### Working_movement.py
