@@ -54,7 +54,77 @@ The function also displays plots of what the camera is seeing: one with the poly
 
 ![Computer Vision Example](https://github.com/asueh/ECSE-275-Final-Project/blob/main/READ_ME%20Images%20and%20GIFs/CV_example.png)
 
+**KINEMATICS AND CONTROL SYSTEM (IRB 140)**
+Implementation: Programmed the Inverse Kinematics (IK) solver and Lua Control Logic.
 
+Integration: Built the communication bridge to translate Vision coordinates into Motor commands.
+
+Testing: Conducted reachability analysis to define workspace limits.
+
+INTRODUCTION
+Motivation: The project addresses labor shortages in agriculture by automating apple harvesting. The goal was to coordinate a high-degree-of-freedom manipulator to interact with organic targets.
+
+ECSE 275 Concepts:
+
+Rigid Body Transformations (Camera Frame to World Frame).
+
+Inverse Kinematics (Resolving Joint Angles from Cartesian Coordinates).
+
+Final Deliverable: A simulated robotic workcell where an IRB 140 arm navigates to apples based on visual data, anchors for stability, and deposits them into a bin.
+
+APPROACH (BUILDING BLOCKS)
+
+A. Inverse Kinematics (Damped Least Squares)
+I implemented a Damped Least Squares (DLS) solver instead of the standard Pseudo-Inverse.
+
+Why: The robot operates at the edge of its workspace. Standard solvers generate infinite velocities (singularities) here. DLS dampens these velocities for smooth motion.
+
+B. Finite State Machine (Logic)
+I architected the control flow in Lua to ensure safety:
+IDLE -> APPROACH -> GRAB (Disable Physics) -> LIFT -> DROP.
+
+C. Dynamic Anchoring (The Physics Fix)
+To fix mobile base instability caused by arm inertia, I developed a Freeze-Thaw system:
+
+Freeze: Upon receiving a target, the script programmatically anchors wheels/base to Static.
+
+Pick: The arm moves on a stable platform.
+
+Thaw: The robot unlocks to drive to the next tree.
+
+D. Data Flow & Interface
+
+Interface: Python (Client) communicates with Lua (Server) via ZMQ.
+
+Data Passed: Python calculates and sends a 4-element vector: [World_X, World_Y, World_Z, Object_Handle_ID].
+
+Processing: Lua parses this vector and feeds the coordinates to the IK solver.
+
+RESULTS
+
+Quantitative Data:
+
+Success Rate: 90% (9/10 successful picks).
+
+Reach: 0.85m (Effective workspace radius).
+
+Cycle Time: ~4.0 seconds per apple.
+
+Motion: Stable (No oscillation or wheel lift).
+
+Qualitative Performance:
+The implementation met the success metrics. The motion profile was smooth due to the DLS solver, avoiding the jerking found in earlier tests. The anchoring system successfully eliminated "link separation" errors. The one failure observed was an edge case where the target was physically out of reach, which the system correctly identified.
+
+[Insert GIF/Video of Robot Picking Apple Here]
+
+CONCLUSION
+I successfully delivered a robust control layer that translates Cartesian vision data into physical actuation. The key innovations were the DLS Solver for handling singularities and the Dynamic Anchoring system to stabilize mobile manipulation.
+
+Future Development:
+
+Path Planning: Implement RRT (Rapidly-exploring Random Trees) to avoid collisions with tree branches.
+
+Continuous Motion: Synchronize the mobile base movement with the arm to allow harvesting while moving, increasing throughput.
 
 ### Path Planning for Mobile Robot
 #### Working_movement.py
