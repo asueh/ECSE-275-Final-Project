@@ -6,7 +6,7 @@ Implemented inverse kinematics for control of the manipulator arm to pick the ap
 #### Amara Suehrstedt
 Implemented computer vision for finding and sorting the different kind of apples. Got path planning to work with computer vision to get the robot to the apples. Worked on getting all components to work together. Worked on project description, approach for computer vision, flow chart.
 #### Nathan Law
-Created the CAD files for both the robot and the tree, and implemented both into CoppeliaSim.
+Created the CAD files for the robot, tree, some apples, and implemented both into CoppeliaSim. Also aided in testing path planning testing.
 #### Henry Liu
 Started path planning for the mobile robot to go to the apples.
 
