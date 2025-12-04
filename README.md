@@ -4,14 +4,14 @@
 #### Eva-Jessy Guech
 Implemented inverse kinematics for control of the manipulator arm to pick the apples.
 #### Amara Suehrstedt
-Implemented computer vision for finding and sorting the different kind of apples. Worked on project description.
+Implemented computer vision for finding and sorting the different kind of apples. Got path planning to work with computer vision to get the robot to the apples. Worked on getting all components to work together. Worked on project description, approach for computer vision, flow chart.
 #### Nathan Law
 Created the CAD files for both the robot and the tree, and implemented both into CoppeliaSim.
 #### Henry Liu
-Implemented path planning for the mobile robot to go to the apples.
+Started path planning for the mobile robot to go to the apples.
 
 ## Introduction
-For this project, we wanted to create a robot able to do a real-world task, but that also uses both a mobile robot and a manipulator. 
+For this project, we wanted to create a robot able to do a real-world task, but that also uses both a mobile robot and a manipulator. We settled on picking apples as it gave us room to change things if needed and gave many different approaches we could take. 
 In this project, we will demonstrate a robot that will find and sort two different kinds of apples (good or bad), move to the apples, put the good apples into the basket on the robot, and the bad apples elsewhere. The ECSE 275 concepts we are using are path planning, inverse kinematics, computer vision, and visual based control of steering.
 
 ## Approach
@@ -20,7 +20,9 @@ In this project, we will demonstrate a robot that will find and sort two differe
 graph TD
   A[CAD] --Robot and Tree Models--> B[CoppeliaSim]
   B[CoppeliaSim] --Camera Data--> C[Computer Vision]
-  C[Computer Vision] --Apple Locations--> D[Path Planing for Mobile Robot]
+  B[CoppeliaSim] --Robot Locations and IDs --> D[Path Planning for Mobile Robot]
+  B[CoppeliaSim] --Robot Locations and object ID--> E[Inverse Kinematics for Manipulator]
+  C[Computer Vision] --Apple Locations--> D[Path Planning for Mobile Robot]
   C[Computer Vision] --Apple Locations and Types--> E[Inverse Kinematics for Manipulator]
 ```
 ### CAD
