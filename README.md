@@ -2,7 +2,35 @@
 
 ## Team Members and Roles
 #### Eva-Jessy Guech
-Implemented inverse kinematics for control of the manipulator arm to pick the apples.
+
+**Goal:** Automate the harvesting process to reduce labor costs and increase efficiency in agriculture.
+**Tech Stack:** Python (Vision & Planning), Lua (Simulation Control), CoppeliaSim (Physics Engine).
+**Hardware:** ABB IRB 140 (6-DOF Manipulator), Differential Drive Mobile Base.
+
+### A. Inverse Kinematics & Singularity Management
+I implemented a **Damped Least Squares (DLS)** solver instead of a standard Pseudo-Inverse solver.
+* **Reasoning:** The robot operates at the edge of its workspace. DLS prevents infinite joint velocities near singularities, ensuring smooth motion.
+* **Result:** Stable path tracking even when fully extended.
+
+### B. Dynamic Anchoring System
+To solve the "Link Separation" physics issue caused by inertia:
+1.  **Freeze:** Upon receiving a target, the entire robot hierarchy is switched to `Static` mode.
+2.  **Execute:** The arm performs the pick-and-place operation on a stable base.
+3.  **Thaw:** The robot is unlocked and returned to `Dynamic` mode to drive to the next tree.
+
+### C. Vision-Control Bridge
+I developed a coordinate transformation pipeline to convert 2D pixel data into 3D world targets:
+$$P_{world} = R_{cam} \cdot P_{cam} + T_{cam}$$
+This allows the Python script to send precise $(x, y, z)$ coordinates directly to the Lua IK solver.
+
+## 4. Performance Results
+
+| Metric | Result | Notes |
+| :--- | :--- | :--- |
+| **Workspace Reach** | 0.8 meters | Effective picking radius |
+| **Success Rate** | 90% (9/10) | High reliability on standard apples |
+| **Cycle Time** | ~4.0s | Approach $\to$ Pick $\to$ Bin |
+| **Stability** | 100% | Anchoring system eliminated wheel slip |
 #### Amara Suehrstedt
 Implemented computer vision for finding and sorting the different kind of apples. Got path planning to work with computer vision to get the robot to the apples. Worked on getting all components to work together. Worked on project description, approach for computer vision, flow chart.
 #### Nathan Law
