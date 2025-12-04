@@ -11,8 +11,7 @@ Created the CAD files for the robot, tree, some apples, and implemented both int
 Started path planning for the mobile robot to go to the apples.
 
 ## Introduction
-For this project, we wanted to create a robot able to do a real-world task, but that also uses both a mobile robot and a manipulator. We settled on picking apples as it gave us room to change things if needed and gave many different approaches we could take. 
-In this project, we will demonstrate a robot that will find and sort two different kinds of apples (good or bad), move to the apples, put the good apples into the basket on the robot, and the bad apples elsewhere. The ECSE 275 concepts we are using are path planning, inverse kinematics, and computer vision.
+For this project, we wanted to create a robot able to do a real-world task, but that also uses both a mobile robot and a manipulator. We settled on picking apples as it gave us room to change things if needed and gave many different approaches we could take. This project addresses the critical need for automation in agriculture, specifically focusing on labor shortages in harvesting. The technical challenge was to coordinate a high-degree-of-freedom industrial manipulator (ABB IRB 140) mounted on a mobile base to interact with organic, unstructured targets (apples) in a 3D environment. But in this project, we will demonstrate a robot that will find and sort two different kinds of apples (good or bad), move to the apples, put the good apples into the basket on the robot, and the bad apples elsewhere. The ECSE 275 concepts we are using are path planning, inverse kinematics, and computer vision.
 
 ## Approach
 ### Overall Flow Chart
@@ -55,17 +54,11 @@ The function also displays plots of what the camera is seeing: one with the poly
 ![Computer Vision Example](https://github.com/asueh/ECSE-275-Final-Project/blob/main/READ_ME%20Images%20and%20GIFs/CV_example.png)
 
 **KINEMATICS AND CONTROL SYSTEM (IRB 140)**
-Kinematics and Control System (IRB 140)
-
-1. Team Member Role
-
-My primary responsibility was engineering the manipulation layer of the robot, acting as the bridge between the perception system and the physical simulation.
+The manipulation layer of the robot, acting as the bridge between the perception system and the physical simulation.
 
 Implementation: I programmed the Inverse Kinematics (IK) solver using the Damped Least Squares method and architected the Lua-based Finite State Machine (FSM) to control the robot's lifecycle.
 
-Integration: I designed and built the ZMQ communication bridge that translates raw Cartesian coordinates from the Computer Vision team into precise motor commands for the IRB 140.
-
-Testing: I conducted extensive reachability analysis to define the operational workspace limits and tuned the control parameters to ensure stability during mobile manipulation.
+Testing: An extensive reachability analysis to define the operational workspace limits and tuned the control parameters to ensure stability during mobile manipulation.
 
 2. Introduction
 
@@ -134,10 +127,6 @@ Motion Stability: 100% (Zero instances of wheel lift or base sliding).
 
 Qualitative Performance:
 The implementation met all pre-determined success metrics. The motion profile was smooth due to the DLS solver, avoiding the singularity-induced oscillations found in earlier iterations. The dynamic anchoring system successfully eliminated the "link separation" physics errors. The single failure observed was a correct rejection of an edge case where the target was physically out of reach.
-
-5. Conclusion
-
-I successfully delivered a robust control layer that translates Cartesian vision data into physical actuation. The key innovations were the implementation of the Damped Least Squares solver for handling workspace singularities and the development of the Dynamic Anchoring system to stabilize mobile manipulation.
 
 Future Development:
 
