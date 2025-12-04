@@ -34,6 +34,8 @@ The SolidWorks assembly was then converted into an STL file and imported into Co
 - Each of the individual parts was copied as a dynamic respondable shape on a different layer of the simulation  
 - Each piece was either merged together or attatched to other pieces with a revolute joint
 - ABB IRB 140 manipulator was attached to robot with a force sensor (to keep from falling off)
+<img src="https://github.com/asueh/ECSE-275-Final-Project/blob/main/READ_ME%20Images%20and%20GIFs/Robot%20Model.png?raw=true" width="300">
+
 
 ### Computer Vision
 #### Shape_Recognition_HSV.py
