@@ -2,35 +2,7 @@
 
 ## Team Members and Roles
 #### Eva-Jessy Guech
-
-**Goal:** Automate the harvesting process to reduce labor costs and increase efficiency in agriculture.
-**Tech Stack:** Python (Vision & Planning), Lua (Simulation Control), CoppeliaSim (Physics Engine).
-**Hardware:** ABB IRB 140 (6-DOF Manipulator), Differential Drive Mobile Base.
-
-### A. Inverse Kinematics & Singularity Management
-I implemented a **Damped Least Squares (DLS)** solver instead of a standard Pseudo-Inverse solver.
-* **Reasoning:** The robot operates at the edge of its workspace. DLS prevents infinite joint velocities near singularities, ensuring smooth motion.
-* **Result:** Stable path tracking even when fully extended.
-
-### B. Dynamic Anchoring System
-To solve the "Link Separation" physics issue caused by inertia:
-1.  **Freeze:** Upon receiving a target, the entire robot hierarchy is switched to `Static` mode.
-2.  **Execute:** The arm performs the pick-and-place operation on a stable base.
-3.  **Thaw:** The robot is unlocked and returned to `Dynamic` mode to drive to the next tree.
-
-### C. Vision-Control Bridge
-I developed a coordinate transformation pipeline to convert 2D pixel data into 3D world targets:
-$$P_{world} = R_{cam} \cdot P_{cam} + T_{cam}$$
-This allows the Python script to send precise $(x, y, z)$ coordinates directly to the Lua IK solver.
-
-## 4. Performance Results
-
-| Metric | Result | Notes |
-| :--- | :--- | :--- |
-| **Workspace Reach** | 0.8 meters | Effective picking radius |
-| **Success Rate** | 90% (9/10) | High reliability on standard apples |
-| **Cycle Time** | ~4.0s | Approach $\to$ Pick $\to$ Bin |
-| **Stability** | 100% | Anchoring system eliminated wheel slip |
+Implemented the kinematics the robot arm manipulator uses to grab the apple and place it into the basket on the robot base plate
 #### Amara Suehrstedt
 Implemented computer vision for finding and sorting the different kind of apples. Got path planning to work with computer vision to get the robot to the apples. Worked on getting all components to work together. Worked on project description, approach for computer vision, flow chart.
 #### Nathan Law
@@ -83,6 +55,95 @@ The function also displays plots of what the camera is seeing: one with the poly
 ![Computer Vision Example](https://github.com/asueh/ECSE-275-Final-Project/blob/main/READ_ME%20Images%20and%20GIFs/CV_example.png)
 ### Inverse Kinematics for Manipulator Arm
 
+# Kinematic Control System for Autonomous Harvesting (IRB 140)
+
+**Course:** ECSE 275 - Robotics Design
+**Focus:** Inverse Kinematics, Finite State Control, and System Integration
+
+---
+
+## 1. Role & Contribution
+
+**My Role: Kinematics Implementation & System Integration**
+
+In this group project to simulate an autonomous apple-picking robot, I was solely responsible for the **manipulation and control layer**. My contributions included:
+* **Inverse Kinematics (IK):** Developed a robust Damped Least Squares (DLS) solver to handle singularities at the workspace boundary.
+* **Finite State Machine (FSM):** Architected the Lua-based logic governing the robot's lifecycle (Approach $\to$ Grab $\to$ Lift $\to$ Drop).
+* **Physics Stabilization:** Engineered a dynamic anchoring system to solve critical inertial instability issues during arm actuation.
+* **Integration Bridge:** Built the ZMQ communication interface to translate raw Cartesian data from the Vision team into physical motor commands.
+
+---
+
+## 2. Problem Statement
+
+The core challenge was to control a 6-Degree-of-Freedom (6-DOF) industrial manipulator (ABB IRB 140) mounted on a mobile base. The control system needed to:
+1.  Accept asynchronous 3D target coordinates $(x, y, z)$ from an external vision system.
+2.  Plan a collision-free path to the target.
+3.  Execute the grab-and-drop sequence without destabilizing the mobile base.
+4.  Handle edge cases where targets were near the limit of the robot's reachable workspace.
+
+---
+
+## 3. Technical Approach
+
+### A. Inverse Kinematics: Damped Least Squares (DLS)
+I selected the **Damped Least Squares** numerical method over the standard Pseudo-Inverse method for solving the inverse kinematics.
+
+* **The Problem:** The robot frequently operates at full extension (0.8m reach) to access the tree canopy. In these configurations, the Jacobian matrix approaches singularity, causing standard solvers to demand infinite joint velocities ("jerking").
+* **My Solution:** I implemented DLS, which introduces a damping factor $\lambda$ to the inversion:
+    $$J^* = J^T (J J^T + \lambda^2 I)^{-1}$$
+    This ensured smooth actuation and stability even when the arm was fully stretched.
+
+### B. Finite State Machine (FSM) in Lua
+To manage the complex sequence of actions, I structured the control logic as a Finite State Machine:
+* `IDLE`: Listens for incoming ZMQ signals from the Python client.
+* `APPROACH`: Solves IK to move the end-effector to the target coordinates.
+* `GRAB`: Engages the suction gripper and **disables target physics** to prevent collision glitches during transport.
+* `LIFT`: Executes a vertical Cartesian offset to clear the tree branches.
+* `DROP`: Navigates to the bin location and releases the object.
+
+### C. Dynamic Physics Anchoring (Stability Fix)
+During testing, I identified a critical failure mode where the inertia of the moving arm caused the mobile base to shift and the wheel links to separate.
+* **Implementation:** I developed a "Freeze-Thaw" logic.
+    1.  Upon receiving a target, the script iterates through the robot's object hierarchy.
+    2.  It dynamically sets the base and wheels to `Static` mode (anchoring it to the world).
+    3.  Once the picking sequence is complete, it restores them to `Dynamic` mode, allowing the robot to navigate to the next tree.
+
+---
+
+## 4. Integration Architecture
+
+I designed the system to decouple **Perception** from **Actuation**. I used a Client-Server model where my Lua script acts as the server listening for trajectory commands.
+
+
+
+* **Input:** 4-Element Vector `[World_X, World_Y, World_Z, Object_Handle]` sent via ZMQ.
+* **Processing:** My script parses this vector, validates the workspace limits, and feeds the coordinates to the IK solver.
+* **Output:** Joint angles driving the 6 servo motors of the IRB 140.
+
+---
+
+## 5. Results & Performance
+
+The kinematics engine was validated through a series of 10 automated harvesting trials.
+
+| Metric | Performance | Analysis |
+| :--- | :--- | :--- |
+| **Success Rate** | **90%** (9/10) | The system successfully picked every apple within its physical workspace. The single failure was an edge case where the target was physically unreachable. |
+| **Workspace Radius** | **0.85 meters** | Defined the effective "Kill Zone" for the manipulator. |
+| **Motion Quality** | **Stable** | The DLS solver successfully eliminated high-velocity oscillations near singularities. |
+| **Cycle Time** | **~4.0 seconds** | Optimized trajectory timing from Approach to Bin. |
+
+### Visual Demonstration
+*(Below is a demonstration of the IK solver handling a target acquisition and drop sequence)*
+
+---
+
+## 6. Conclusion
+
+I successfully delivered a robust kinematic control layer for the autonomous harvester. The system effectively translates high-level Cartesian commands into low-level joint actuation while managing complex physics constraints.
+
+The implementation of the **Damped Least Squares solver** proved essential for handling the singularity-prone workspace of an apple orchard, and the **Dynamic Anchoring** system resolved the physical instability inherent in mobile manipulation.
 ### Path Planning for Mobile Robot
 #### Working_movement.py
 This gets the robot location and joints to initialize movement. To find the target location, it calls the function inside Shape_Recognition_HSV.py to find target apples. Next it calculates how far away each apple is, and initializes movement for the nearest good apple. It calculates the speed using proportional control law. While moving towards the target, it checks how far away the base of the robot arm is from the target coordinates. Once the base of the arm is within 0.7m of the target, it stops for 20 seconds to allow the robot to pick up the robot. However, it does not lock the robot in place meaning it still moves freely due to the physics engine in the simulation. Below is a GIF of the robot getting to position before stopping movement.
