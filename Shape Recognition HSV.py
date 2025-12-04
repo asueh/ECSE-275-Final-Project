@@ -10,8 +10,9 @@ import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
 import array
+import math
 
-def getAppleLocations():
+def getAppleLocations(sim, camera_handle):
     '''
         Get camera information to find and sort apples and compute locations
         
@@ -33,27 +34,24 @@ def getAppleLocations():
     ''' CAMERA CONSTANTS AND SET UP DO NOT MODIFY'''
     # Camera Constants
     pixels_per_inch = 560.0165995731867 
-    meters_per_pixel = .0254 / pixels_per_inch
+    meters_per_pixel = 0.0254 / pixels_per_inch
     
-    client = zmq.RemoteAPIClient()
-    sim = client.getObject('sim')
-    
-    # Define the position of our drop "zone"
-    #drop_target = sim.getObject('/drop_target')
-    #droppt = sim.getObjectPose(drop_target,-1)
-    
-    # Get the camera handle
-    camera_handle = sim.getObject("/visionSensor")
     
     ''' CODE FOR GETTING THE IMAGE SET UP CORRECTLY FOR CONTOUR DETECTION'''
     # Obtain the image from the image sensor
     image_buffer, resolution = sim.getVisionSensorImg(camera_handle)
     img = np.frombuffer(image_buffer, dtype = np.uint8).reshape(resolution[1], resolution[0], 3)
     
+    
+    ''' CODE FOR CAMERA DATA, POSITION, AND ORIENTATION'''
     # Camera pose data for later, put here for least amount of delay
     camera_matrix = np.array(sim.getObjectMatrix(camera_handle, -1)).reshape(3,4)
     Rot = camera_matrix[:,:3]
     position = camera_matrix[:,3]
+    
+    orientation = sim.getObjectOrientation(camera_handle, -1)
+    beta_deg = math.degrees(orientation[1])
+    
     # Depth data for later, put here for least amount of delay
     depth_data = sim.getVisionSensorDepth(camera_handle, 1)
     float_array = array.array('f')
@@ -63,7 +61,7 @@ def getAppleLocations():
     
     cam_angle = sim.getObjectFloatParam(camera_handle, sim.visionfloatparam_perspective_angle)
     fx = resolution[0] / (2.0 * np.tan(cam_angle / 2.0))
-    fy = resolution[1] / (2.0 * np.tan(cam_angle / 2.0) * resolution[1]/resolution[0])
+    fy = resolution[1] / (2.0 * np.tan(cam_angle / 2.0))
     # We need to flip the image to align the horizontal axis with the camera frame
     img = cv.flip(img, 0)
     
@@ -122,9 +120,12 @@ def getAppleLocations():
         elif len(cnt) > 5:
             Good_apple_polys.append(cnt)
     
+    
     ''' Centroid and Depth Computing 
         Computes the centroid by finding the moments of each poly, grabbing the correct one to find the cX and cY
     '''
+    
+    
     Bad_apple_centroid = []
     Bad_apple_depth =[]
     # Centroid for bad apples
@@ -164,27 +165,50 @@ def getAppleLocations():
     u0 = resolution[0] / 2.0
     v0 = resolution[1] / 2.0
     
+    
     # Get coordinates in camera frame
     Bad_apple_cam = []
+    Bad_apple_world_z =[]
     for idx in range(len(Bad_apple_depth)):
         u = Bad_apple_centroid[idx][0]
         v = Bad_apple_centroid[idx][1]
         z = Bad_apple_depth[idx]
-        X_cam = (u - u0) * z * meters_per_pixel / fx
-        Y_cam = (v - v0) * z * meters_per_pixel / fy
-        Z_cam = z
+        # Adds an offset as the depth value becomes more off the more head on the camera is to the apples if the angle is less than 20 degrees
+        if beta_deg < 20:
+            delta_u = (u - u0) * z * meters_per_pixel / fx
+            delta_v = (v - v0) * z * meters_per_pixel/ fx
+            Z_cam = z / math.sqrt(1 + delta_u*delta_u + delta_v*delta_v)
+            X_cam = delta_u * Z_cam - 0.2 - (0.02 * (20 - beta_deg))
+            Y_cam = delta_v * Z_cam - 0.2 - (0.02 * (20 - beta_deg))
+        else: 
+            X_cam = (u - u0) * z * meters_per_pixel / fx
+            Y_cam = (v - v0) * z * meters_per_pixel / fy
+            Z_cam = z
         Bad_apple_cam.append([X_cam, Y_cam, Z_cam])
+        Bad_apple_world_z.append(position[2] - (v - v0) * z / fy)
     
     
     Good_apple_cam = []
+    Good_apple_world_z =[]
     for idx in range(len(Good_apple_depth)):
-        z = Good_apple_depth[idx]
         u = Good_apple_centroid[idx][0]
         v = Good_apple_centroid[idx][1]
-        X_cam = (u - u0) * z * meters_per_pixel / fx
-        Y_cam = (v - v0) * z * meters_per_pixel/ fy
-        Z_cam = z
+        z = Good_apple_depth[idx]
+        
+        # Adds an offset as the depth value becomes more off the more head on the camera is to the apples if the angle is less than 20 degrees
+        if abs(beta_deg) < 20:
+            print('t')
+            delta_u = (u - u0) * z * meters_per_pixel / fx
+            delta_v = (v - v0) * z * meters_per_pixel/ fx
+            Z_cam = z / math.sqrt(1 + delta_u*delta_u + delta_v*delta_v)
+            X_cam = delta_u * Z_cam - 0.2 - (0.02 * (20 - beta_deg))
+            Y_cam = delta_v * Z_cam - 0.2 - (0.02 * (20 - beta_deg))
+        else: 
+            X_cam = (u - u0) * z * meters_per_pixel / fx
+            Y_cam = (v - v0) * z * meters_per_pixel / fy
+            Z_cam = z
         Good_apple_cam.append([X_cam, Y_cam, Z_cam])
+        Good_apple_world_z.append(position[2] - (v - v0) * z / fy)
     
     # Get world coordinates from camera coordinates
     Bad_apple_world = []
@@ -192,13 +216,14 @@ def getAppleLocations():
         #Rotation to convert camera coordinates to world coordinates
         Bad_apple_world.append(Rot @ pnt + position)
         #Computes the actual z coordinate as the z coordinate is the only one that is fixed on the camera
-        Bad_apple_world[idx][2] = position[2] - (v - v0) * z / fy
+        Bad_apple_world[idx][2] = Bad_apple_world_z[idx]
         
     Good_apple_world = []
     for idx, pnt in enumerate(Good_apple_cam):
         #Rotation to convert camera coordinates to world coordinates
         Good_apple_world.append(Rot @ pnt + position)
+        #Good_apple_world[idx][0] = position[0] + Good_apple_world[idx][0]
         #Computes the actual z coordinate as the z coordinate is the only one that is fixed on the camera
-        Good_apple_world[idx][2] = position[2] - (v - v0) * z / fy
-    
+        Good_apple_world[idx][2] = Good_apple_world_z[idx]
+        
     return Good_apple_world, Bad_apple_world
