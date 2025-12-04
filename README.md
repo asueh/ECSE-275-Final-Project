@@ -33,7 +33,7 @@ The CAD for the custom robot was made in SolidWorks Assembly CAD. This software 
 The SolidWorks assembly was then converted into an STL file and imported into Coppeliasim. The robot was then set up in the same way as the instructions in Assignment 0: 
 - Each of the individual parts was copied as a dynamic respondable shape on a different layer of the simulation  
 - Each piece was either merged together or attatched to other pieces with a revolute joint
-- 
+- ABB IRB 140 manipulator was attached to robot with a force sensor (to keep from falling off)
 
 ### Computer Vision
 #### Shape_Recognition_HSV.py
