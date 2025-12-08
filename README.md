@@ -71,7 +71,7 @@ The manipulation layer integrates the Damped Least Squares (DLS) IK solver with 
 
 3.  Drive and Reachability Control
     -   Challenge (Reachability): Initial path planning resulted in the robot stopping $\approx 1.22 \text{ m}$ away, causing a kinematic miss of $\approx 0.52 \text{ m}$ (The apple was outside the arm's workspace).
-    -   Resolution: The $\text{ARM\_REACH\_DISTANCE}$ parameter was aggressively set to $0.3 \text{ m}$ to maximize proximity. The mobile drive was simplified to a pure straight-line drive ($\text{turn}=0.0$) to avoid instability and ensure the arm's correct alignment was maintained.
+    -   Resolution: The {ARM\_REACH\_DISTANCE} parameter was aggressively set to $0.3 \text{ m}$ to maximize proximity. The mobile drive was simplified to a pure straight-line drive ($\text{turn}=0.0$) to avoid instability and ensure the arm's correct alignment was maintained.
 
 4. Physics Stabilization (Active Pose Holding)
     -   Challenge: The inertia of the moving arm caused the mobile base to shift ($\text{Chassis sliding/wobbling}$), leading to failure in static target acquisition.
