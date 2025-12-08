@@ -53,7 +53,7 @@ The function also displays plots of what the camera is seeing: one with the poly
 
 ![Computer Vision Example](https://github.com/asueh/ECSE-275-Final-Project/blob/main/READ_ME%20Images%20and%20GIFs/CV_example.png)
 
-### **KINEMATICS AND CONTROL SYSTEM (IRB 140) [Eva-Jessy Guech]**
+### **KINEMATICS AND CONTROL SYSTEM (IRB 140)**
 
 The manipulation layer, implemented in Lua and utilizing a Finite State Machine (FSM), was responsible for resolving the core stability, reach, and movement challenges of the system.
 
@@ -63,8 +63,8 @@ The manipulation layer integrates the Damped Least Squares (DLS) IK solver with 
 
 1.  Inverse Kinematics (IK) and Singularity Management:
     -   Method: The numerical iterative approach using the Damped Least Squares (DLS) solver was chosen to prevent infinite joint velocities when the arm operates near kinematic singularities (fully extended or joints aligned).
-    -   Challenge (Twisting): The fixed orientation constraint ($\text{simIK.constraint\_pose}$) caused the arm to twist and Joint 3/4 to freeze during complex reaches.
-    -   Resolution: The FSM dynamically switched the IK constraint to position-only ($\text{simIK.constraint\_position}$) during the 'MOVING_TO_APPLE' and 'LIFTING phases. This successfully eliminated singularity-induced joint twisting by allowing the end-effector's rotation to float, prioritizing the critical $\text{XYZ}$ position solve.
+    -   Challenge (Twisting): The fixed orientation constraint {simIK.constraint\_pose} caused the arm to twist and Joint 3/4 to freeze during complex reaches.
+    -   Resolution: The FSM dynamically switched the IK constraint to position-only {simIK.constraint\_position} during the 'MOVING_TO_APPLE' and 'LIFTING phases. This successfully eliminated singularity-induced joint twisting by allowing the end-effector's rotation to float, prioritizing the critical {XYZ} position solve.
 
 2.  Trajectory Generation:
     -   Method: A 3rd-order polynomial interpolation was used in the `execute_move` function to ensure a smooth, minimal-jerk joint trajectory between the Initial Point (IP) and Destination Point (DP). This guarantees the most direct path in joint space, addressing the requirement to avoid unnecessary, sweeping movements ("snake trajectory").
@@ -78,7 +78,7 @@ The manipulation layer integrates the Damped Least Squares (DLS) IK solver with 
     -   Resolution: The "Active Pose Holding" system was implemented. Upon arrival, the system captures the chassis's pose and **forces a positional reset every simulation step throughout $\text{MODE 2}$ (Arm Execution). This provided perfect base stability without using the error-prone static physics lock.
 
 
-
+_Quantitatie Performance_
 
 
 
