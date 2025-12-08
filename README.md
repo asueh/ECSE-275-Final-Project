@@ -53,11 +53,11 @@ The function also displays plots of what the camera is seeing: one with the poly
 
 ![Computer Vision Example](https://github.com/asueh/ECSE-275-Final-Project/blob/main/READ_ME%20Images%20and%20GIFs/CV_example.png)
 
-### **KINEMATICS AND CONTROL SYSTEM (IRB 140)**
+## KINEMATICS AND CONTROL SYSTEM (IRB 140)
 
 The manipulation layer, implemented in Lua and utilizing a Finite State Machine (FSM), was responsible for resolving the core stability, reach, and movement challenges of the system.
 
-#### **Implementation, Failures, and Technical Resolution**
+### **Implementation, Failures, and Technical Resolution**
 
 The manipulation layer integrates the Damped Least Squares (DLS) IK solver with dynamic safety controls.
 
@@ -77,7 +77,7 @@ The manipulation layer integrates the Damped Least Squares (DLS) IK solver with 
     -   Challenge: The inertia of the moving arm caused the mobile base to shift ($\text{Chassis sliding/wobbling}$), leading to failure in static target acquisition.
     -   Resolution: The "Active Pose Holding" system was implemented. Upon arrival, the system captures the chassis's pose and **forces a positional reset every simulation step throughout $\text{MODE 2}$ (Arm Execution). This provided perfect base stability without using the error-prone static physics lock.
 
-# Experiments and Failure Analysis
+### Experiments and Failure Analysis
 
 To quantify performance and demonstrate robustness, we defined specific parameters to be deliberately manipulated to explore system limits and failure modes.
 
@@ -89,10 +89,12 @@ To quantify performance and demonstrate robustness, we defined specific paramete
 | Kinematics (Grabbing) | `toggle_suction` distance (0.2 m to 0.5 m) | Grab failure (suction activated but miss recorded). | Final Pick Success Rate (0 or 1); Miss Distance at Time of Grab. |
 | Physics/Stability | `Active Pose Holding` (Enabled/Disabled) | Chassis sliding/wobbling during arm movement; Link separation/explosion (if physics lock were used). | Mobile Base Displacement (m); Total Cycle Time. |
 
-## Results
+https://github.com/asueh/ECSE-275-Final-Project/blob/main/READ_ME%20Images%20and%20GIFs/hitagainstcam.gif
+https://github.com/asueh/ECSE-275-Final-Project/blob/main/READ_ME%20Images%20and%20GIFs/twisting%20arm.gif
 
-### Quantitative Data (Performance Metrics)
+### Results
 
+_Quantitative Data (Performance Metrics)_
 The kinematics engine was validated through automated harvesting trials, focusing on the critical failure modes identified.
 
 | Metric | Target | Result (Tuned Final System) | Observation / Failure Analysis |
@@ -114,8 +116,9 @@ _Future Improvemenets_
 1.  Adaptive Stop Distance: Introduce logic to calculate the *required* stop distance based on the apple's height and $\text{X/Y}$ coordinates relative to the arm's maximum reach, instead of relying on a single fixed $0.3 \text{ m}$ value.
 2.  RRT Path Planning: Incorporate Rapidly-exploring Random Trees (RRT) for the arm motion to explicitly calculate collision-free paths around the visible tree branches, further formalizing the "snake" movement.
 3.  Continuous Manipulation: Synchronize mobile base movement with arm motion to allow for "picking while moving," significantly increasing harvest throughput.
-
-**EMBEDDED VIDEOS**
+https://github.com/asueh/ECSE-275-Final-Project/blob/main/READ_ME%20Images%20and%20GIFs/Attemptatcombining3.gif
+https://github.com/asueh/ECSE-275-Final-Project/blob/main/READ_ME%20Images%20and%20GIFs/vision%26IK.gif
+https://github.com/asueh/ECSE-275-Final-Project/blob/main/READ_ME%20Images%20and%20GIFs/vision%26IK.gif
 
 ### Path Planning for Mobile Robot
 #### Working_movement.py
