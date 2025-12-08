@@ -81,7 +81,10 @@ The manipulation layer integrates the Damped Least Squares (DLS) IK solver with 
 _Quantitatie Performance_
 
 
-
+| Left | Center | Right |
+|:---|:---:|---:|
+| Text | Aligned | Here |
+| More | Content | Example |
 
 _Qualitative Performance_
 The implementation successfully met all metrics related to stability and motion smoothness. The motion profile was smooth due to the DLS solver and the joint-space trajectory planning. The major challenge remaining is the **reachability failure**, proving that the target coordinates derived from the vision system require a robot that drives further *under* the target location or a different arm geometry.
